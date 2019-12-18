@@ -4,11 +4,11 @@ A simple python module for downloading tweets within the Philippines
 
 Need to download tweets for NLP and machine learning? phil_tweet_downloader
 allows access to [Twitter's streaming API](https://developer.twitter.com/en/docs/tutorials/consuming-streaming-data)
-through [Tweepy](https://www.tweepy.org/) without the hassle writting a bunch of codes.
+through [Tweepy](https://www.tweepy.org/) without the hassle of writting a bunch of codes.
 
 ## Quick Start
 
-Just create a your own Twitter app (here's a [tutorial](https://docs.inboundnow.com/guide/create-twitter-application/)) to obtain your access tokens. Open `test.py` and paste in the access tokens. Save and run the file on the terminal.
+Just create your own Twitter app (here's a [tutorial](https://docs.inboundnow.com/guide/create-twitter-application/)) to obtain your access tokens. Open `test.py` and paste in the access tokens. Save and run the file on the terminal.
 
 ```python
 import os
