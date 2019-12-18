@@ -26,8 +26,10 @@ downloader.download_tweets(consumer_key, consumer_secret, access_token, access_t
 
 ```
 
-The downloaded tweets will be saved as json files in the `output` folder. You can specify the size
-of the json files using `fileSizeLimit`. By default, each json file will be around 250mb in size.
+The downloaded tweets will be saved as json files in the `output` folder 
+(Note: create the output folder manually if it is missing).
+You can specify the size of the json files using `fileSizeLimit`. 
+By default, each json file will be around 250mb in size.
 
 ```python
 downloader.download_tweets(consumer_key, consumer_secret, access_token, access_token_secret,
