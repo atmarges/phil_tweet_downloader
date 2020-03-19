@@ -31,7 +31,7 @@ class MyListener(StreamListener):
         if len(os.listdir(self.myPath)) == 0:
             self.fileSize = 0
         else:
-            self.fileSize = os.path.getsize(self.myPath + "\\" + self.outJson)
+            self.fileSize = os.path.getsize(os.path.join(self.myPath, self.outJson))
 
         print("Downloder running!")
 
@@ -45,10 +45,10 @@ class MyListener(StreamListener):
     def get_tweet(self, data):
         if self.fileSize <= self.fileSizeLimit:
             try:
-                with open(self.myPath + "\\" + self.outJson, 'a') as f:
+                with open(os.path.join(self.myPath, self.outJson), 'a') as f:
                     f.write(data)
                     self.fileSize = os.path.getsize(
-                        self.myPath + "\\" + self.outJson)
+                        os.path.join(self.myPath, self.outJson))
                     return True
             except BaseException as e:
                 print("Error on_data: %s" % str(e))
@@ -60,11 +60,11 @@ class MyListener(StreamListener):
             self.outJson = "tweet" + str(self.fileCount) + ".json"
 
             try:
-                open(self.myPath + "\\" + self.outJson, 'a')
+                open(os.path.join(self.myPath, self.outJson), 'a')
             except BaseException as e:
                 print("Error on_data: %s" % str(e))
 
-            self.fileSize = os.path.getsize(self.myPath + "\\" + self.outJson)
+            self.fileSize = os.path.getsize(os.path.join(self.myPath, self.outJson))
             print("Creating file #" + str(self.fileCount))
 
             try:
