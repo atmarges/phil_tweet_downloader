@@ -5,6 +5,7 @@ from tweepy import Stream
 
 import json
 import time
+import datetime
 import os
 
 
@@ -16,13 +17,22 @@ class MyListener(StreamListener):
     fileCount = 1
     fileSize = 0
     startCount = 1
+    current_hour = datetime.datetime.now().time().hour
 
-    def __init__(self, output_dir, fileSizeLimit=250000000, logfile='logfile.txt', startCount=1):
+    def __init__(self, output_dir, useInterval=False, fileSizeLimit=250000000, 
+                 text_only=False, logfile='logfile.txt', startCount=1, 
+                 customFunction = lambda a : a):
         # self.myPath = os.getcwd() + "\\tweets"
         self.myPath = output_dir
         self.startCount = startCount
         self.fileSizeLimit = fileSizeLimit
         self.logfile = logfile
+        self.useInterval = useInterval
+        
+        if text_only:
+            self.customFunction = self.get_text_only
+        else:
+            self.customFunction = customFunction
 
         # self.fileCount = len(os.listdir(self.myPath)) + self.startCount
         self.fileCount = self.startCount
@@ -31,7 +41,8 @@ class MyListener(StreamListener):
         if len(os.listdir(self.myPath)) == 0:
             self.fileSize = 0
         else:
-            self.fileSize = os.path.getsize(os.path.join(self.myPath, self.outJson))
+            self.fileSize = os.path.getsize(
+                os.path.join(self.myPath, self.outJson))
 
         print("Downloder running!")
 
@@ -43,10 +54,16 @@ class MyListener(StreamListener):
         return True
 
     def get_tweet(self, data):
-        if self.fileSize <= self.fileSizeLimit:
+        if self.useInterval:
+            create_file_condition = self.current_hour == datetime.datetime.now().time().hour
+        else:
+            create_file_condition = self.fileSize <= self.fileSizeLimit
+
+        if create_file_condition:
             try:
-                with open(os.path.join(self.myPath, self.outJson), 'a') as f:
-                    f.write(data)
+                with open(os.path.join(self.myPath, self.outJson), 'ab') as f:
+                    data = self.customFunction(data)
+                    f.write(data.encode('utf-8'))
                     self.fileSize = os.path.getsize(
                         os.path.join(self.myPath, self.outJson))
                     return True
@@ -56,6 +73,7 @@ class MyListener(StreamListener):
             return True
 
         else:
+            self.current_hour = datetime.datetime.now().time().hour
             self.fileCount = self.fileCount + 1
             self.outJson = "tweet" + str(self.fileCount) + ".json"
 
@@ -64,7 +82,8 @@ class MyListener(StreamListener):
             except BaseException as e:
                 print("Error on_data: %s" % str(e))
 
-            self.fileSize = os.path.getsize(os.path.join(self.myPath, self.outJson))
+            self.fileSize = os.path.getsize(
+                os.path.join(self.myPath, self.outJson))
             print("Creating file #" + str(self.fileCount))
 
             try:
@@ -74,13 +93,22 @@ class MyListener(StreamListener):
                     # print(self.fileSize)
             except BaseException as e:
                 print("Error on_data: %s" % str(e))
+    
+    def get_text_only(self, data):
+        data = json.loads(data)
+        data = data['text']
+        for i in ['\t', '\r', '\n', '\f']:
+            data = data.replace(i, ' ')
+        data = data.strip()
+        data = data + '\n'
+        return data
 
 
 def download_tweets(consumer_key, consumer_secret, access_token, access_token_secret,
                     output_dir, startCount=1,
                     locations=[116.702882, 5.621718, 129.387207, 21.933351],
                     follow=None, track=None,
-                    fileSizeLimit=250000000, logfile='logfile.txt'):
+                    fileSizeLimit=250000000, logfile='logfile.txt', *args, **kwargs):
     """Download tweets from Twitter API and save to .json files of specified size
 
     Arguments:
@@ -91,6 +119,7 @@ def download_tweets(consumer_key, consumer_secret, access_token, access_token_se
         output_dir {str} -- directory of the output .json files containing tweets
 
     Keyword Arguments:
+        useInterval {boolean} -- if True, create a new file every hour
         startCount {int} -- the starting number of the output json file. Use this for continuation when previous files were removed. (default: {1})
         locations {list of size 4} -- the coordinates of the location bounding box. Values represents [west_long, south_lat, east_long, north_lat]. Default is Philippine area (default: {[116.702882, 5.621718, 129.387207, 21.933351]})
         follow {int} -- A comma separated list of user IDs, indicating the users to return statuses for in the stream. (default: {None})
@@ -105,7 +134,7 @@ def download_tweets(consumer_key, consumer_secret, access_token, access_token_se
         try:
             # This handles Twitter authetification and the connection to Twitter Streaming API
             l = MyListener(output_dir=output_dir, fileSizeLimit=fileSizeLimit,
-                           logfile=logfile, startCount=startCount)
+                           logfile=logfile, startCount=startCount, **kwargs)
             auth = OAuthHandler(consumer_key, consumer_secret)
             auth.set_access_token(access_token, access_token_secret)
 
