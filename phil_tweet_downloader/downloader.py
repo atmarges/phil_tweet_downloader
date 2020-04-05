@@ -19,16 +19,16 @@ class MyListener(StreamListener):
     startCount = 1
     current_hour = datetime.datetime.now().time().hour
 
-    def __init__(self, output_dir, useInterval=False, fileSizeLimit=250000000, 
-                 text_only=False, logfile='logfile.txt', startCount=1, 
-                 customFunction = lambda a : a):
+    def __init__(self, output_dir, useInterval=False, fileSizeLimit=250000000,
+                 text_only=False, logfile='logfile.txt', startCount=1,
+                 customFunction=lambda a: a):
         # self.myPath = os.getcwd() + "\\tweets"
         self.myPath = output_dir
         self.startCount = startCount
         self.fileSizeLimit = fileSizeLimit
         self.logfile = logfile
         self.useInterval = useInterval
-        
+
         if text_only:
             self.customFunction = self.get_text_only
         else:
@@ -93,10 +93,13 @@ class MyListener(StreamListener):
                     # print(self.fileSize)
             except BaseException as e:
                 print("Error on_data: %s" % str(e))
-    
+
     def get_text_only(self, data):
         data = json.loads(data)
-        data = data['text']
+        try:
+            data = data['extended_tweet']['full_text']
+        except:
+            data = data['text']
         for i in ['\t', '\r', '\n', '\f']:
             data = data.replace(i, ' ')
         data = data.strip()
