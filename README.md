@@ -54,6 +54,47 @@ downloader.download_tweets(consumer_key, consumer_secret, access_token, access_t
 
 Or you can keep track of specific users using the `follow` keyword.
 
+### Fetch during intervals
+
+Another option is to set saving of the download files during specified intervals. For this, set the `useInterval`
+parameter into one of the following: `['minute', 'hour', 'day', 'month', 'year']`. Set this parameter to `None` use 
+default saving scheme. The example below will save create a json file every hour.
+
+```python
+downloader.download_tweets(consumer_key, consumer_secret, access_token, access_token_secret,
+                           output_dir=output_dir, track=['baguio'], useInterval='hour')
+```
+
+### Custom function
+
+Custom functions can also be applied to the tweet data fetched before saving. For instance, the output dataset can
+contain plain text instead of json by creating a custom function by using the code below.
+
+```python
+def get_text_only(self, data):
+    data = json.loads(data)
+
+    if not data['in_reply_to_status_id']:
+        try:
+            data = data['extended_tweet']['full_text']
+        except:
+            data = data['text']
+
+    for i in ['\t', '\r', '\n', '\f']:
+        data = data.replace(i, ' ')
+
+    data = data.strip()
+    data = data + '\n'
+
+    return data
+
+
+downloader.download_tweets(consumer_key, consumer_secret, access_token, access_token_secret,
+                           output_dir=output_dir, track=['baguio'], useInterval='hour', customFunction=get_text_only)
+```
+
+The same output can be achieved by setting `text_only` to True.
+
 ## Requirement
 
 This requires the [Tweepy](https://www.tweepy.org/) library to work.
